@@ -24,9 +24,9 @@ document.addEventListener("DOMContentLoaded", function () {
       let data = {};
       let id = this.querySelector("input[name='id']").value;
       data.id = id || +new Date();
-      data.judul = this.querySelector("input[name='judul']").value;
-      data.penerbit = this.querySelector("input[name='penerbit']").value;
-      data.tahun = this.querySelector("input[name='tahun']").value;
+      data.title = this.querySelector("input[name='judul']").value;
+      data.author = this.querySelector("input[name='penerbit']").value;
+      data.year = this.querySelector("input[name='tahun']").value;
       data.url_cover = this.querySelector("input[name='url_cover']").value;
       data.isComplete = this.querySelector("input[name='isComplete']").checked;
 
@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("inputRakSelesaiDibaca").addEventListener("input", function (event) {
       let value = event.target.value;
       rakSelesaiDibacaList = originalRakSelesaiDibacaList.filter((item) => {
-        return item.judul.toLowerCase().includes(value.toLowerCase());
+        return item.title.toLowerCase().includes(value.toLowerCase());
       });
 
       let cardBody = contentRakSelesaiDibaca.querySelector(".card-body");
@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("inputRakBelumDibaca").addEventListener("input", function (event) {
       let value = event.target.value;
       rakBelumDibacaList = originalRakBelumDibacaList.filter((item) => {
-        return item.judul.toLowerCase().includes(value.toLowerCase());
+        return item.title.toLowerCase().includes(value.toLowerCase());
       });
 
       let cardBody = contentRakBelumDibaca.querySelector(".card-body");
@@ -79,11 +79,13 @@ function showForm(book = {}) {
   if (book.id) {
     contentForm.querySelector(".card-header-title").innerText = "Edit Buku";
     contentForm.querySelector("input[name='id']").value = book.id;
-    contentForm.querySelector("input[name='judul']").value = book.judul;
-    contentForm.querySelector("input[name='penerbit']").value = book.penerbit;
-    contentForm.querySelector("input[name='tahun']").value = book.tahun;
+    contentForm.querySelector("input[name='judul']").value = book.title;
+    contentForm.querySelector("input[name='penerbit']").value = book.author;
+    contentForm.querySelector("input[name='tahun']").value = book.year;
     contentForm.querySelector("input[name='url_cover']").value = book.url_cover;
-    contentForm.querySelector("input[name='isComplete']").checked = book.isComplete;
+    if (book.isComplete) {
+      contentForm.querySelector("input[name='isComplete']").checked = book.isComplete;
+    }
   } else {
     contentForm.querySelector(".card-header-title").innerText = "Tambah Buku";
   }
@@ -122,10 +124,14 @@ function saveDataToStorage(data, isComplete, id) {
       let indexBelum = originalRakBelumDibacaList.findIndex((item) => item.id == id);
       if (indexSelesai > -1) {
         originalRakSelesaiDibacaList.splice(indexSelesai, 1);
-        originalRakBelumDibacaList.push(data);
       } else if (indexBelum > -1) {
         originalRakBelumDibacaList.splice(indexBelum, 1);
+      }
+
+      if (isComplete) {
         originalRakSelesaiDibacaList.push(data);
+      } else {
+        originalRakBelumDibacaList.push(data);
       }
     } else {
       if (isComplete) {
@@ -155,7 +161,7 @@ function reloadRakSelesaiDibaca() {
   originalRakSelesaiDibacaList = getDataFromStorage(KEY_RAK_SELESAI_DIBACA);
 
   originalRakSelesaiDibacaList.sort((a, b) => {
-    return a.judul.localeCompare(b.judul);
+    return a.title.localeCompare(b.title);
   });
 
   rakSelesaiDibacaList = originalRakSelesaiDibacaList;
@@ -169,7 +175,7 @@ function reloadRakBelumDibaca() {
   originalRakBelumDibacaList = getDataFromStorage(KEY_RAK_BELUM_DIBACA);
 
   originalRakBelumDibacaList.sort((a, b) => {
-    return a.judul.localeCompare(b.judul);
+    return a.title.localeCompare(b.title);
   });
 
   rakBelumDibacaList = originalRakBelumDibacaList;
@@ -232,10 +238,10 @@ function setBookItem(books, body, isCompleted) {
     });
 
     bookCover.src = book.url_cover || "./assets/img/cover_book.jpg";
-    bookCover.alt = book.judul;
-    bookTitle.innerText = book.judul;
-    bookAuthor.innerText = book.penerbit;
-    bookYear.innerText = book.tahun;
+    bookCover.alt = book.title;
+    bookTitle.innerText = book.title;
+    bookAuthor.innerText = book.author;
+    bookYear.innerText = book.year;
 
     bookCoverDiv.appendChild(bookCover);
     bookDetailDiv.appendChild(bookTitle);
@@ -270,7 +276,6 @@ function moveBook(index, book, isCompleted) {
     reloadRakBelumDibaca();
   }
 }
-
 function removeBook(index, isCompleted) {
   let isStorageExist = checkHasStorage();
   if (isStorageExist) {
